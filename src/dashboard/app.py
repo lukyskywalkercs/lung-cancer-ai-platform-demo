@@ -134,7 +134,8 @@ st.info(
     "Este dashboard no consulta datos remotamente en tiempo real. Solo visualiza artefactos locales generados por el pipeline."
 )
 st.caption(
-    "Si no hay datos propios cargados, la app puede mostrar resultados demo precargados para facilitar la evaluacion inicial."
+    "Si no hay datos propios cargados, la app puede mostrar resultados DEMO precargados. "
+    "DEMO no significa datos inventados: son datos reales de fuentes oficiales."
 )
 
 with st.sidebar:
@@ -168,7 +169,10 @@ tab_overview, tab_trace, tab_targets, tab_upload, tab_lab = st.tabs(
 
 with tab_overview:
     st.subheader("Estado de pipeline")
-    st.caption("Fuente de datos usada en esta vista: artefactos locales del proyecto (pipeline propio o demo precomputada).")
+    st.caption(
+        "Fuente de datos usada en esta vista: artefactos locales del proyecto "
+        "(pipeline propio o DEMO precomputada con datos reales oficiales, p. ej. TCGA/UCSC Xena)."
+    )
     sources_state = _availability_label(SOURCES_PATH, DEMO_SOURCES_PATH)
     manifest_state = _availability_label(MANIFEST_PATH, DEMO_MANIFEST_PATH)
     uploaded_state = _availability_label(UPLOADED_RANKING_PATH)
@@ -205,7 +209,10 @@ with tab_overview:
 
 with tab_trace:
     st.subheader("Origen y trazabilidad de datos")
-    st.caption("Fuente de datos usada en esta vista: archivos de configuracion y manifiesto de descargas del proyecto.")
+    st.caption(
+        "Fuente de datos usada en esta vista: archivos de configuracion y manifiesto de descargas. "
+        "En modo DEMO, las fuentes siguen siendo oficiales y trazables."
+    )
     st.markdown(
         "- Las fuentes oficiales se configuran en `data/external/sources.json`.\n"
         "- La descarga local crea `data/raw/download_manifest.json` con URL, ruta local y SHA256."
@@ -216,7 +223,10 @@ with tab_trace:
         st.info("Aun no hay configuracion de fuentes disponible.")
     else:
         if not SOURCES_PATH.exists() and DEMO_SOURCES_PATH.exists():
-            st.warning("Mostrando configuracion de fuentes desde datos demo precargados.")
+            st.warning(
+                "Mostrando configuracion de fuentes desde DEMO precargada. "
+                "Estos datos son reales y provienen de fuentes oficiales."
+            )
         sources_df = pd.DataFrame(
             [{"dataset": k, "url_configurada": v if v else "(sin URL)"} for k, v in sources.items()]
         )
@@ -232,7 +242,10 @@ with tab_trace:
         )
     else:
         if not MANIFEST_PATH.exists() and DEMO_MANIFEST_PATH.exists():
-            st.warning("Mostrando manifiesto desde datos demo precargados.")
+            st.warning(
+                "Mostrando manifiesto desde DEMO precargada. "
+                "Incluye artefactos reales descargados desde fuentes oficiales."
+            )
         st.markdown("### Artefactos descargados")
         man_df = pd.DataFrame(manifest)
         st.dataframe(man_df, use_container_width=True)
