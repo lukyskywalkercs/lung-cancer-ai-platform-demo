@@ -275,6 +275,7 @@ with tab_upload:
                     if ranking_up.empty:
                         st.error("No se pudo calcular ranking (datos insuficientes tras limpieza).")
                     else:
+                        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
                         save_path = PROCESSED_DIR / "target_ranking_uploaded.csv"
                         ranking_up.to_csv(save_path, index=False)
                         st.success(f"Ranking generado y guardado en `{save_path.name}`")
