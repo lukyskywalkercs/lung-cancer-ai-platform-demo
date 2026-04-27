@@ -48,6 +48,14 @@ def status_badge(is_ready: bool) -> str:
     return "Listo" if is_ready else "Pendiente"
 
 
+def _availability_label(primary: Path, fallback: Path | None = None) -> str:
+    if primary.exists():
+        return "Listo"
+    if fallback is not None and fallback.exists():
+        return "Demo precargada"
+    return "Pendiente"
+
+
 def _target_paths_for_mode(study_mode: str) -> tuple[Path, Path]:
     mode = study_mode.lower()
     if mode == "global":
@@ -125,6 +133,9 @@ st.caption(
 st.info(
     "Este dashboard no consulta datos remotamente en tiempo real. Solo visualiza artefactos locales generados por el pipeline."
 )
+st.caption(
+    "Si no hay datos propios cargados, la app puede mostrar resultados demo precargados para facilitar la evaluacion inicial."
+)
 
 with st.sidebar:
     st.header("Control de estudio")
@@ -157,13 +168,14 @@ tab_overview, tab_trace, tab_targets, tab_upload, tab_lab = st.tabs(
 
 with tab_overview:
     st.subheader("Estado de pipeline")
-    sources_ready = SOURCES_PATH.exists() or DEMO_SOURCES_PATH.exists()
-    manifest_ready = MANIFEST_PATH.exists() or DEMO_MANIFEST_PATH.exists()
-    st.write(f"- Config fuentes (`data/external/sources.json`): **{status_badge(sources_ready)}**")
-    st.write(f"- Manifiesto descarga (`data/raw/download_manifest.json`): **{status_badge(manifest_ready)}**")
+    sources_state = _availability_label(SOURCES_PATH, DEMO_SOURCES_PATH)
+    manifest_state = _availability_label(MANIFEST_PATH, DEMO_MANIFEST_PATH)
+    uploaded_state = _availability_label(UPLOADED_RANKING_PATH)
+    st.write(f"- Config fuentes (`data/external/sources.json`): **{sources_state}**")
+    st.write(f"- Manifiesto descarga (`data/raw/download_manifest.json`): **{manifest_state}**")
     st.write(
         f"- Ranking por carga (`data/processed/target_ranking_uploaded.csv`): "
-        f"**{status_badge(UPLOADED_RANKING_PATH.exists())}**"
+        f"**{uploaded_state}**"
     )
     processed_files = sorted([p.name for p in PROCESSED_DIR.glob("*") if p.is_file()]) if PROCESSED_DIR.exists() else []
     if not processed_files and DEMO_DIR.exists():
@@ -172,7 +184,7 @@ with tab_overview:
     if processed_files:
         st.dataframe(pd.DataFrame({"archivo": processed_files}), use_container_width=True)
     else:
-        st.warning("No hay artefactos en `data/processed` todavia.")
+        st.info("Todavia no hay artefactos propios en `data/processed`.")
 
     st.markdown("### Comandos de ejecucion")
     st.code(
@@ -199,8 +211,10 @@ with tab_trace:
 
     sources = load_sources()
     if sources is None:
-        st.error("Falta configuración de fuentes.")
+        st.info("Aun no hay configuracion de fuentes disponible.")
     else:
+        if not SOURCES_PATH.exists() and DEMO_SOURCES_PATH.exists():
+            st.warning("Mostrando configuracion de fuentes desde datos demo precargados.")
         sources_df = pd.DataFrame(
             [{"dataset": k, "url_configurada": v if v else "(sin URL)"} for k, v in sources.items()]
         )
@@ -209,12 +223,14 @@ with tab_trace:
 
     manifest = load_manifest()
     if manifest is None:
-        st.warning("No hay manifiesto de descarga disponible.")
+        st.info("Aun no hay manifiesto de descarga disponible.")
     elif len(manifest) == 0:
         st.warning(
             "El manifiesto existe pero esta vacio. Revisa URLs directas en `sources.json` y vuelve a descargar."
         )
     else:
+        if not MANIFEST_PATH.exists() and DEMO_MANIFEST_PATH.exists():
+            st.warning("Mostrando manifiesto desde datos demo precargados.")
         st.markdown("### Artefactos descargados")
         man_df = pd.DataFrame(manifest)
         st.dataframe(man_df, use_container_width=True)
@@ -234,11 +250,14 @@ with tab_targets:
     ranking_df = load_target_ranking(study_mode)
     if ranking_df is None:
         st.info(
-            f"No hay ranking para `{study_mode}`. Ejecuta: "
-            f"`python src/models/target_model.py --subtype {study_mode.lower()} --target-col age_at_initial_pathologic_diagnosis --top-n 80`"
+            "Aun no hay ranking generado para este modo. Puedes subir un CSV en la pestaña "
+            "`Carga de datos (demo)` para ver resultados inmediatos."
         )
     else:
-        st.success(f"Resultado cargado: `{target_ranking_path.name}`")
+        if "demo_assets" in str(target_ranking_path):
+            st.info(f"Mostrando ranking demo precargado: `{target_ranking_path.name}`")
+        else:
+            st.success(f"Resultado cargado: `{target_ranking_path.name}`")
         top_n = st.slider("Top N para visualizar", 5, min(100, len(ranking_df)), top_n_default, 5)
         view_df = ranking_df.head(top_n).copy()
         st.dataframe(view_df, use_container_width=True)
@@ -263,7 +282,12 @@ with tab_upload:
     )
     uploaded = st.file_uploader("Archivo de datos", type=["csv", "tsv", "txt"])
 
-    if uploaded is not None:
+    if uploaded is None:
+        st.info(
+            "Todavia no se ha subido ningun archivo. "
+            "Cuando quieras, sube un CSV/TSV y la plataforma generara un ranking exploratorio."
+        )
+    else:
         sep = "," if uploaded.name.lower().endswith(".csv") else "\t"
         raw_df = pd.read_csv(uploaded, sep=sep)
         st.write(f"Filas: **{len(raw_df)}** | Columnas: **{len(raw_df.columns)}**")
