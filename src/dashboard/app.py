@@ -247,15 +247,22 @@ with tab_targets:
 """
     )
     target_ranking_path, target_metadata_path = _target_paths_for_mode(study_mode)
-    ranking_df = load_target_ranking(study_mode)
+    using_uploaded = UPLOADED_RANKING_PATH.exists()
+    ranking_df = pd.read_csv(UPLOADED_RANKING_PATH) if using_uploaded else load_target_ranking(study_mode)
     if ranking_df is None:
         st.info(
             "Aun no hay ranking generado para este modo. Puedes subir un CSV en la pestaña "
             "`Carga de datos (demo)` para ver resultados inmediatos."
         )
     else:
-        if "demo_assets" in str(target_ranking_path):
-            st.info(f"Mostrando ranking demo precargado: `{target_ranking_path.name}`")
+        if using_uploaded:
+            st.success("Mostrando ranking generado con el CSV que has subido.")
+            st.caption(f"Archivo: `{UPLOADED_RANKING_PATH.name}`")
+        elif "demo_assets" in str(target_ranking_path):
+            st.info(
+                "Mostrando ranking precomputado con datos publicos reales (TCGA) "
+                f"incluidos para visualizacion inicial: `{target_ranking_path.name}`"
+            )
         else:
             st.success(f"Resultado cargado: `{target_ranking_path.name}`")
         top_n = st.slider("Top N para visualizar", 5, min(100, len(ranking_df)), top_n_default, 5)
