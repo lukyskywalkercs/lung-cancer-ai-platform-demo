@@ -1,0 +1,10 @@
+{
+  "tcga_luad_clinical": "https://tcga.xenahubs.net/download/TCGA.LUAD.sampleMap/LUAD_clinicalMatrix",
+  "tcga_lusc_clinical": "https://tcga.xenahubs.net/download/TCGA.LUSC.sampleMap/LUSC_clinicalMatrix",
+  "depmap_expression": "",
+  "depmap_mutations": "",
+  "depmap_crispr": "",
+  "depmap_prism": "",
+  "gdsc": "https://www.cancerrxgene.org/downloads/bulk_download",
+  "tcga_portal": "https://portal.gdc.cancer.gov/"
+}

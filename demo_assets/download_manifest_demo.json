@@ -1,0 +1,14 @@
+[
+  {
+    "key": "tcga_luad_clinical",
+    "url": "https://tcga.xenahubs.net/download/TCGA.LUAD.sampleMap/LUAD_clinicalMatrix",
+    "path": "data\\raw\\LUAD_clinicalMatrix",
+    "sha256": "0e7a7fa7773a44326d2270160201b059c50c8a0c75359359a8639772497db59a"
+  },
+  {
+    "key": "tcga_lusc_clinical",
+    "url": "https://tcga.xenahubs.net/download/TCGA.LUSC.sampleMap/LUSC_clinicalMatrix",
+    "path": "data\\raw\\LUSC_clinicalMatrix",
+    "sha256": "9afa946e9136a2d6848da0897fea3a1cfbc8cad1f4cf9a52b3d00e2781c84a2f"
+  }
+]

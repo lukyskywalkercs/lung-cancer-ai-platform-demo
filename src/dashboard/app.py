@@ -14,6 +14,9 @@ EXTERNAL_DIR = BASE_PATH / "data" / "external"
 SOURCES_PATH = EXTERNAL_DIR / "sources.json"
 MANIFEST_PATH = RAW_DIR / "download_manifest.json"
 UPLOADED_RANKING_PATH = PROCESSED_DIR / "target_ranking_uploaded.csv"
+DEMO_DIR = BASE_PATH / "demo_assets"
+DEMO_SOURCES_PATH = DEMO_DIR / "sources_demo.json"
+DEMO_MANIFEST_PATH = DEMO_DIR / "download_manifest_demo.json"
 
 st.markdown(
     """
@@ -48,14 +51,14 @@ def status_badge(is_ready: bool) -> str:
 def _target_paths_for_mode(study_mode: str) -> tuple[Path, Path]:
     mode = study_mode.lower()
     if mode == "global":
-        return (
-            PROCESSED_DIR / "target_ranking.csv",
-            PROCESSED_DIR / "target_model_metadata.json",
-        )
-    return (
-        PROCESSED_DIR / f"target_ranking_{mode}.csv",
-        PROCESSED_DIR / f"target_model_metadata_{mode}.json",
-    )
+        primary = PROCESSED_DIR / "target_ranking.csv"
+        fallback = DEMO_DIR / "target_ranking_demo.csv"
+        ranking = primary if primary.exists() else fallback
+        return (ranking, PROCESSED_DIR / "target_model_metadata.json")
+    primary = PROCESSED_DIR / f"target_ranking_{mode}.csv"
+    fallback = DEMO_DIR / f"target_ranking_{mode}_demo.csv"
+    ranking = primary if primary.exists() else fallback
+    return (ranking, PROCESSED_DIR / f"target_model_metadata_{mode}.json")
 
 
 def load_target_ranking(study_mode: str) -> pd.DataFrame | None:
@@ -66,16 +69,18 @@ def load_target_ranking(study_mode: str) -> pd.DataFrame | None:
 
 
 def load_sources() -> dict | None:
-    if not SOURCES_PATH.exists():
+    source_path = SOURCES_PATH if SOURCES_PATH.exists() else DEMO_SOURCES_PATH
+    if not source_path.exists():
         return None
-    with SOURCES_PATH.open("r", encoding="utf-8") as f:
+    with source_path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_manifest() -> list[dict] | None:
-    if not MANIFEST_PATH.exists():
+    manifest_path = MANIFEST_PATH if MANIFEST_PATH.exists() else DEMO_MANIFEST_PATH
+    if not manifest_path.exists():
         return None
-    with MANIFEST_PATH.open("r", encoding="utf-8") as f:
+    with manifest_path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -152,13 +157,17 @@ tab_overview, tab_trace, tab_targets, tab_upload, tab_lab = st.tabs(
 
 with tab_overview:
     st.subheader("Estado de pipeline")
-    st.write(f"- Config fuentes (`data/external/sources.json`): **{status_badge(SOURCES_PATH.exists())}**")
-    st.write(f"- Manifiesto descarga (`data/raw/download_manifest.json`): **{status_badge(MANIFEST_PATH.exists())}**")
+    sources_ready = SOURCES_PATH.exists() or DEMO_SOURCES_PATH.exists()
+    manifest_ready = MANIFEST_PATH.exists() or DEMO_MANIFEST_PATH.exists()
+    st.write(f"- Config fuentes (`data/external/sources.json`): **{status_badge(sources_ready)}**")
+    st.write(f"- Manifiesto descarga (`data/raw/download_manifest.json`): **{status_badge(manifest_ready)}**")
     st.write(
         f"- Ranking por carga (`data/processed/target_ranking_uploaded.csv`): "
         f"**{status_badge(UPLOADED_RANKING_PATH.exists())}**"
     )
     processed_files = sorted([p.name for p in PROCESSED_DIR.glob("*") if p.is_file()]) if PROCESSED_DIR.exists() else []
+    if not processed_files and DEMO_DIR.exists():
+        processed_files = sorted([p.name for p in DEMO_DIR.glob("*ranking*") if p.is_file()])
     st.write(f"- Archivos en `data/processed`: **{len(processed_files)}**")
     if processed_files:
         st.dataframe(pd.DataFrame({"archivo": processed_files}), use_container_width=True)
@@ -190,7 +199,7 @@ with tab_trace:
 
     sources = load_sources()
     if sources is None:
-        st.error("Falta `data/external/sources.json`. No hay fuentes configuradas.")
+        st.error("Falta configuración de fuentes.")
     else:
         sources_df = pd.DataFrame(
             [{"dataset": k, "url_configurada": v if v else "(sin URL)"} for k, v in sources.items()]
@@ -200,10 +209,7 @@ with tab_trace:
 
     manifest = load_manifest()
     if manifest is None:
-        st.warning(
-            "Aun no existe `data/raw/download_manifest.json`. "
-            "Esto significa que la descarga no se ha ejecutado o no genero artefactos."
-        )
+        st.warning("No hay manifiesto de descarga disponible.")
     elif len(manifest) == 0:
         st.warning(
             "El manifiesto existe pero esta vacio. Revisa URLs directas en `sources.json` y vuelve a descargar."
