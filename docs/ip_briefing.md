@@ -1,6 +1,8 @@
 # Lung Cancer AI Platform
 ## Resumen ejecutivo para IP
 
+**Autor:** Lucas Chabrera Querol
+
 ### 1) Proposito
 Esta plataforma muestra, de forma reproducible, como transformar datos reales de cancer de pulmon en hipotesis priorizadas para investigacion.
 
