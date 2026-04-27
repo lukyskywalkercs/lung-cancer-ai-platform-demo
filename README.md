@@ -261,3 +261,21 @@ Resultados reales con datos públicos
 Un informe claro y reproducible
 
 Demostración de que puedes trabajar en remoto con rigor científico
+
+📌 10. Código abierto, autoría y contribuciones
+Este repositorio es de código abierto y está en evolución continua.
+
+Autor del proyecto (owner):
+- Lucas (GitHub: lukyskywalkercs)
+
+Objetivo de apertura:
+- Permitir que la comunidad proponga mejoras técnicas y científicas.
+- Facilitar actualizaciones del pipeline y del dashboard de forma transparente.
+
+Reglas de colaboración:
+- Se aceptan issues y pull requests para mejorar calidad, reproducibilidad y utilidad del proyecto.
+- No se deben añadir datos inventados, mockups o resultados no trazables.
+- Toda mejora debe mantener la filosofía de datos públicos reales y ciencia reproducible.
+
+Propiedad y mantenimiento:
+- El proyecto es propiedad intelectual de su autor y se comparte en abierto para colaboración y mejora continua.
