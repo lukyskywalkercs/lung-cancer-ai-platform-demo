@@ -168,6 +168,7 @@ tab_overview, tab_trace, tab_targets, tab_upload, tab_lab = st.tabs(
 
 with tab_overview:
     st.subheader("Estado de pipeline")
+    st.caption("Fuente de datos usada en esta vista: artefactos locales del proyecto (pipeline propio o demo precomputada).")
     sources_state = _availability_label(SOURCES_PATH, DEMO_SOURCES_PATH)
     manifest_state = _availability_label(MANIFEST_PATH, DEMO_MANIFEST_PATH)
     uploaded_state = _availability_label(UPLOADED_RANKING_PATH)
@@ -204,6 +205,7 @@ with tab_overview:
 
 with tab_trace:
     st.subheader("Origen y trazabilidad de datos")
+    st.caption("Fuente de datos usada en esta vista: archivos de configuracion y manifiesto de descargas del proyecto.")
     st.markdown(
         "- Las fuentes oficiales se configuran en `data/external/sources.json`.\n"
         "- La descarga local crea `data/raw/download_manifest.json` con URL, ruta local y SHA256."
@@ -258,13 +260,16 @@ with tab_targets:
         if using_uploaded:
             st.success("Mostrando ranking generado con el CSV que has subido.")
             st.caption(f"Archivo: `{UPLOADED_RANKING_PATH.name}`")
+            st.caption("Fuente de datos usada: CSV subido por el usuario en esta sesion.")
         elif "demo_assets" in str(target_ranking_path):
             st.info(
                 "Mostrando ranking precomputado con datos publicos reales (TCGA) "
                 f"incluidos para visualizacion inicial: `{target_ranking_path.name}`"
             )
+            st.caption("Fuente de datos usada: TCGA LUAD/LUSC (UCSC Xena), precomputada y empaquetada en el proyecto.")
         else:
             st.success(f"Resultado cargado: `{target_ranking_path.name}`")
+            st.caption("Fuente de datos usada: pipeline IA local del proyecto (datos publicos procesados).")
         top_n = st.slider("Top N para visualizar", 5, min(100, len(ranking_df)), top_n_default, 5)
         view_df = ranking_df.head(top_n).copy()
         st.dataframe(view_df, use_container_width=True)
@@ -294,7 +299,9 @@ with tab_upload:
             "Todavia no se ha subido ningun archivo. "
             "Cuando quieras, sube un CSV/TSV y la plataforma generara un ranking exploratorio."
         )
+        st.caption("Fuente de datos usada: pendiente de carga por el usuario.")
     else:
+        st.caption(f"Fuente de datos usada: archivo subido por el usuario (`{uploaded.name}`).")
         sep = "," if uploaded.name.lower().endswith(".csv") else "\t"
         raw_df = pd.read_csv(uploaded, sep=sep)
         st.write(f"Filas: **{len(raw_df)}** | Columnas: **{len(raw_df.columns)}**")
