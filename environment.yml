@@ -1,0 +1,26 @@
+name: lung-cancer-ai-platform
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - xgboost
+  - scanpy
+  - matplotlib
+  - seaborn
+  - plotly
+  - streamlit
+  - jupyterlab
+  - notebook
+  - ipykernel
+  - pyyaml
+  - requests
+  - statsmodels
+  - pip:
+      - deepchem
+      - gradio
