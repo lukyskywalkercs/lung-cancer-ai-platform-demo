@@ -13,6 +13,7 @@ PROCESSED_DIR = BASE_PATH / "data" / "processed"
 EXTERNAL_DIR = BASE_PATH / "data" / "external"
 SOURCES_PATH = EXTERNAL_DIR / "sources.json"
 MANIFEST_PATH = RAW_DIR / "download_manifest.json"
+UPLOADED_RANKING_PATH = PROCESSED_DIR / "target_ranking_uploaded.csv"
 
 st.markdown(
     """
@@ -126,7 +127,7 @@ with st.sidebar:
     top_n_default = st.slider("Top dianas", 5, 100, 20, step=5)
     st.divider()
     selected_ranking_path, _ = _target_paths_for_mode(study_mode)
-    target_ready = selected_ranking_path.exists()
+    target_ready = selected_ranking_path.exists() or UPLOADED_RANKING_PATH.exists()
     resistance_ready = (PROCESSED_DIR / "resistance_signatures.csv").exists()
     comb_ready = (PROCESSED_DIR / "drug_combination_ranking.csv").exists()
     st.caption("Estado rapido")
@@ -153,6 +154,10 @@ with tab_overview:
     st.subheader("Estado de pipeline")
     st.write(f"- Config fuentes (`data/external/sources.json`): **{status_badge(SOURCES_PATH.exists())}**")
     st.write(f"- Manifiesto descarga (`data/raw/download_manifest.json`): **{status_badge(MANIFEST_PATH.exists())}**")
+    st.write(
+        f"- Ranking por carga (`data/processed/target_ranking_uploaded.csv`): "
+        f"**{status_badge(UPLOADED_RANKING_PATH.exists())}**"
+    )
     processed_files = sorted([p.name for p in PROCESSED_DIR.glob("*") if p.is_file()]) if PROCESSED_DIR.exists() else []
     st.write(f"- Archivos en `data/processed`: **{len(processed_files)}**")
     if processed_files:
